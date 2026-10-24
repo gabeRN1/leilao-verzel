@@ -3,8 +3,9 @@ import { ConfigModule } from '@nestjs/config';
 import { AuthModule } from './auth/auth.module';
 import { CarteiraModule } from './carteira/carteira.module';
 import { PrismaModule } from './prisma/prisma.module';
+import { LotesModule } from './lotes/lotes.module';
 
 @Module({
-  imports: [ConfigModule.forRoot({ isGlobal: true }), PrismaModule, AuthModule, CarteiraModule],
+  imports: [ConfigModule.forRoot({ isGlobal: true }), PrismaModule, AuthModule, CarteiraModule, LotesModule], 
 })
 export class AppModule {}
