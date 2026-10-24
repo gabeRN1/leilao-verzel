@@ -1,0 +1,100 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Papel {
+  LEILOEIRO
+  LICITANTE
+}
+
+// AGENDADO e AO_VIVO não são persistidos: derivam de inicioEm/fimEm.
+// Só ENCERRADO e CANCELADO são transições reais.
+enum StatusLote {
+  ABERTO
+  ENCERRADO
+  CANCELADO
+}
+
+model Usuario {
+  id        String   @id @default(uuid()) @db.Uuid
+  nome      String
+  email     String   @unique
+  senhaHash String
+  papel     Papel
+  criadoEm  DateTime @default(now()) @db.Timestamptz(3)
+
+  carteira   Carteira?
+  lotes      Lote[]     @relation("LeiloeiroDoLote")
+  lideranca  Lote[]     @relation("LiderDoLote")
+  lances     Lance[]
+  arrematesG Arremate[] @relation("Vencedor")
+  vendas     Arremate[] @relation("Vendedor")
+}
+
+// Valores em centavos.
+model Carteira {
+  usuarioId         String @id @db.Uuid
+  saldoTotal        BigInt @default(0)
+  saldoComprometido BigInt @default(0)
+
+  usuario Usuario @relation(fields: [usuarioId], references: [id])
+}
+
+model Lote {
+  id             String     @id @default(uuid()) @db.Uuid
+  leiloeiroId    String     @db.Uuid
+  titulo         String
+  imagemUrl      String
+  atributos      Json
+  origemId       String
+  lanceInicial   BigInt
+  incremento     BigInt
+  inicioEm       DateTime   @db.Timestamptz(3)
+  fimEm          DateTime   @db.Timestamptz(3)
+  status         StatusLote @default(ABERTO)
+  valorAtual     BigInt?
+  liderId        String?    @db.Uuid
+  criadoEm       DateTime   @default(now()) @db.Timestamptz(3)
+
+  leiloeiro Usuario    @relation("LeiloeiroDoLote", fields: [leiloeiroId], references: [id])
+  lider     Usuario?   @relation("LiderDoLote", fields: [liderId], references: [id])
+  lances    Lance[]
+  arremate  Arremate?
+
+  @@index([status, fimEm])
+}
+
+// Cadeia por lote: sequencia define a ordem, hash encadeia com hashAnterior.
+model Lance {
+  id           String   @id @default(uuid()) @db.Uuid
+  loteId       String   @db.Uuid
+  licitanteId  String   @db.Uuid
+  sequencia    Int
+  valor        BigInt
+  criadoEm     DateTime @db.Timestamptz(3)
+  hashAnterior String?
+  hash         String   @unique
+
+  lote      Lote    @relation(fields: [loteId], references: [id])
+  licitante Usuario @relation(fields: [licitanteId], references: [id])
+
+  @@unique([loteId, sequencia])
+}
+
+model Arremate {
+  id          String   @id @default(uuid()) @db.Uuid
+  loteId      String   @unique @db.Uuid
+  vencedorId  String   @db.Uuid
+  leiloeiroId String   @db.Uuid
+  valor       BigInt
+  liquidadoEm DateTime @default(now()) @db.Timestamptz(3)
+
+  lote      Lote    @relation(fields: [loteId], references: [id])
+  vencedor  Usuario @relation("Vencedor", fields: [vencedorId], references: [id])
+  vendedor  Usuario @relation("Vendedor", fields: [leiloeiroId], references: [id])
+}
