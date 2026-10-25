@@ -5,8 +5,10 @@ import {
   NotFoundException,
   UnprocessableEntityException,
 } from '@nestjs/common';
+import { anonimizar } from '../auditoria/anonimo';
 import { calcularHash } from '../auditoria/hash';
 import { PrismaService } from '../prisma/prisma.service';
+import { LotesGateway } from '../realtime/lotes.gateway';
 
 const DOIS_MINUTOS = 2 * 60_000;
 
@@ -22,12 +24,15 @@ type LoteTravado = {
 
 @Injectable()
 export class LancesService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private gateway: LotesGateway,
+  ) {}
 
-  dar(loteId: string, licitanteId: string, valorInformado: number) {
+  async dar(loteId: string, licitanteId: string, valorInformado: number) {
     const valor = BigInt(valorInformado);
 
-    return this.prisma.$transaction(
+    const { resposta, liderAnterior } = await this.prisma.$transaction(
       async (tx) => {
         // O FOR UPDATE serializa todos os lances do mesmo lote. Sem ele, dois lances
         // leriam o mesmo valorAtual e a mesma ponta da cadeia, e ambos seriam aceitos.
@@ -100,13 +105,51 @@ export class LancesService {
         });
 
         return {
-          lance: { id: lance.id, sequencia: lance.sequencia, valor, criadoEm: agora },
-          fimEm,
-          prorrogado,
+          liderAnterior: lote.liderId,
+          resposta: {
+            lance: { id: lance.id, sequencia: lance.sequencia, valor, criadoEm: agora },
+            fimEm,
+            prorrogado,
+          },
         };
       },
       // Lances concorrentes esperam o lock dentro da transação e seguram uma conexão do pool.
       { maxWait: 10_000, timeout: 10_000 },
     );
+
+    // Só depois do commit: um evento publicado dentro da transação poderia anunciar um lance que sofre rollback.
+    this.gateway.publicarLance(
+      {
+        loteId,
+        sequencia: resposta.lance.sequencia,
+        valor,
+        criadoEm: resposta.lance.criadoEm,
+        fimEm: resposta.fimEm,
+        prorrogado: resposta.prorrogado,
+      },
+      licitanteId,
+      liderAnterior,
+    );
+    return resposta;
+  }
+
+  async historico(loteId: string) {
+    const lances = await this.prisma.lance.findMany({
+      where: { loteId },
+      orderBy: { sequencia: 'desc' },
+      take: 200,
+      select: { sequencia: true, valor: true, criadoEm: true, licitanteId: true },
+    });
+    return lances.map(({ licitanteId, ...lance }) => ({ ...lance, licitante: anonimizar(licitanteId) }));
+  }
+
+  // Estado inicial do badge Ganhando/Superado; depois disso os eventos mantêm o front atualizado.
+  async situacao(loteId: string, usuarioId: string) {
+    const lote = await this.prisma.lote.findUnique({
+      where: { id: loteId },
+      select: { liderId: true },
+    });
+    if (!lote) throw new NotFoundException('Lote não encontrado');
+    return { lider: lote.liderId === usuarioId };
   }
 }
