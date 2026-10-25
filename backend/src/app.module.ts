@@ -4,8 +4,9 @@ import { AuthModule } from './auth/auth.module';
 import { CarteiraModule } from './carteira/carteira.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { LotesModule } from './lotes/lotes.module';
+import { LancesModule } from './lances/lances.module';
 
 @Module({
-  imports: [ConfigModule.forRoot({ isGlobal: true }), PrismaModule, AuthModule, CarteiraModule, LotesModule], 
+  imports: [ConfigModule.forRoot({ isGlobal: true }), PrismaModule, AuthModule, CarteiraModule, LotesModule, LancesModule], 
 })
 export class AppModule {}
