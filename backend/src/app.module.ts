@@ -7,7 +7,7 @@ import { LancesModule } from './lances/lances.module';
 import { LiquidacaoModule } from './liquidacao/liquidacao.module';
 import { LotesModule } from './lotes/lotes.module';
 import { PrismaModule } from './prisma/prisma.module';
-
+import { AuditoriaModule } from './auditoria/auditoria.module';
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
@@ -18,6 +18,7 @@ import { PrismaModule } from './prisma/prisma.module';
     LancesModule,
     LiquidacaoModule,
     ArrematesModule,
+    AuditoriaModule,
   ],
 })
 export class AppModule {}
