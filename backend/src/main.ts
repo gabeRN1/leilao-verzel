@@ -28,6 +28,7 @@ async function bootstrap() {
   app.enableCors({
     origin: process.env.FRONTEND_URL || ['http://localhost:3000', 'http://localhost:3001'],
     credentials: true,
+    exposedHeaders: ['Date']
   });
 
   const port = process.env.PORT || 3001;

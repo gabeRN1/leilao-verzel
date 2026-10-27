@@ -1,0 +1,71 @@
+@import "tailwindcss";
+
+@theme {
+  --color-papel: #f4f2ed;
+  --color-tinta: #1c1b18;
+  --color-suave: #6a665c;
+  --color-linha: #d5d1c6;
+  --color-acento: #1f3a5f;
+  --color-ok: #1e6b3b;
+  --color-alerta: #a85414;
+  --color-erro: #a3231a;
+}
+
+@theme inline {
+  --font-sans: var(--font-plex), system-ui, sans-serif;
+  --font-serif: var(--font-newsreader), Georgia, serif;
+}
+
+@layer base {
+  *, ::after, ::before { border-color: var(--color-linha); }
+  body {
+    background: var(--color-papel);
+    color: var(--color-tinta);
+    font-variant-numeric: tabular-nums;
+  }
+  h1, h2 { font-family: var(--font-serif); font-weight: 500; }
+  a { text-underline-offset: 3px; }
+  a:hover { text-decoration: underline; }
+}
+
+@layer components {
+  .campo {
+    width: 100%;
+    background: #fff;
+    border: 1px solid var(--color-linha);
+    padding: 0.5rem 0.625rem;
+  }
+  .campo:focus { outline: 2px solid var(--color-acento); outline-offset: -1px; }
+  .btn {
+    border: 1px solid var(--color-tinta);
+    padding: 0.5rem 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+  }
+  .btn:hover:not(:disabled) { background: var(--color-tinta); color: var(--color-papel); }
+  .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+  .btn-cheio { background: var(--color-tinta); color: var(--color-papel); }
+  .btn-cheio:hover:not(:disabled) { background: var(--color-acento); border-color: var(--color-acento); }
+  .rotulo {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--color-suave);
+  }
+  .tabela { width: 100%; border-collapse: collapse; }
+  .tabela th {
+    text-align: left;
+    font-weight: 500;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--color-suave);
+    padding: 0.5rem 0.75rem 0.5rem 0;
+    border-bottom: 1px solid var(--color-tinta);
+  }
+  .tabela td {
+    padding: 0.625rem 0.75rem 0.625rem 0;
+    border-bottom: 1px solid var(--color-linha);
+    vertical-align: top;
+  }
+}

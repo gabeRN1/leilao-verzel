@@ -150,6 +150,7 @@ export class LancesService {
       select: { liderId: true },
     });
     if (!lote) throw new NotFoundException('Lote não encontrado');
-    return { lider: lote.liderId === usuarioId };
+    const lances = await this.prisma.lance.count({ where: { loteId, licitanteId: usuarioId } });
+    return { lider: lote.liderId === usuarioId, participou: lances > 0 };
   }
 }
