@@ -30,23 +30,36 @@ export default function Entrar() {
     }
   }
 
+  const invalido = erro ? true : undefined;
+  const descreveSenha = [registrando && 'senha-ajuda', erro && 'entrar-erro'].filter(Boolean).join(' ') || undefined;
+
   return (
     <div className="max-w-sm">
-      <h1 className="mb-4 text-3xl">{registrando ? 'Criar conta' : 'Entrar'}</h1>
+      <h1 className="mb-4 text-4xl">{registrando ? 'Criar conta' : 'Entrar'}</h1>
       <form onSubmit={enviar} className="space-y-3">
         {registrando && (
           <label className="block">
             <span className="rotulo">Nome</span>
-            <input name="nome" required minLength={2} className="campo" />
+            <input name="nome" required minLength={2} autoComplete="name" className="campo" />
           </label>
         )}
         <label className="block">
           <span className="rotulo">E-mail</span>
-          <input name="email" type="email" required className="campo" />
+          <input name="email" type="email" required autoComplete="username" aria-invalid={invalido} aria-describedby={erro ? 'entrar-erro' : undefined} className="campo" />
         </label>
         <label className="block">
           <span className="rotulo">Senha</span>
-          <input name="senha" type="password" required minLength={8} className="campo" />
+          <input
+            name="senha"
+            type="password"
+            required
+            minLength={8}
+            autoComplete={registrando ? 'new-password' : 'current-password'}
+            aria-invalid={invalido}
+            aria-describedby={descreveSenha}
+            className="campo"
+          />
+          {registrando && <span id="senha-ajuda" className="block text-sm text-suave">Mínimo de 8 caracteres.</span>}
         </label>
         {registrando && (
           <label className="block">
@@ -57,12 +70,12 @@ export default function Entrar() {
             </select>
           </label>
         )}
-        {erro && <p className="text-sm text-erro">{erro}</p>}
+        {erro && <p id="entrar-erro" role="alert" className="text-sm text-erro">{erro}</p>}
         <button className="btn btn-cheio w-full" disabled={enviando}>
-          {registrando ? 'Criar conta' : 'Entrar'}
+          {enviando ? 'Enviando…' : registrando ? 'Criar conta' : 'Entrar'}
         </button>
       </form>
-      <button onClick={() => setRegistrando(!registrando)} className="mt-4 text-sm underline">
+      <button type="button" onClick={() => setRegistrando(!registrando)} className="alvo mt-2 text-sm link">
         {registrando ? 'Já tenho conta' : 'Criar conta'}
       </button>
     </div>

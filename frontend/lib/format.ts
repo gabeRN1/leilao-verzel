@@ -8,10 +8,27 @@ export const dataHora = (iso: string) =>
 
 export const hora = (iso: string) => new Date(iso).toLocaleTimeString('pt-BR', { timeZone: FUSO });
 
-// Aceita "1.250,50" e "1250,5". Devolve NaN para vazio, zero ou texto inválido.
+// Aceita "1.250,50", "1250,5", "1250.5", "1,250.50" e separador solto no fim ("1250,"). Devolve NaN para vazio, zero, mais de 2 casas ou texto inválido.
+// O último separador é o decimal quando há os dois; ponto isolado com 3 dígitos depois ("1.250") é milhar, desde que o primeiro grupo tenha até 3 dígitos.
 export function paraCentavos(texto: string) {
-  const n = Number(texto.trim().replace(/\./g, '').replace(',', '.'));
-  return Number.isFinite(n) && n > 0 ? Math.round(n * 100) : NaN;
+  let t = texto.replace(/R\$|\s/g, '').replace(/[.,]$/, '');
+  const v = t.lastIndexOf(',');
+  const p = t.lastIndexOf('.');
+  if (v >= 0 && p >= 0) {
+    const dec = Math.max(v, p);
+    t = `${t.slice(0, dec).replace(/[.,]/g, '')}.${t.slice(dec + 1)}`;
+  } else if (v >= 0) {
+    t = t.split(',').length === 2 ? t.replace(',', '.') : '';
+  } else if (p >= 0) {
+    const partes = t.split('.');
+    const decimal = partes.length === 2 && partes[1].length <= 2;
+    const milhar = /^\d{1,3}$/.test(partes[0]) && partes.slice(1).every((g) => g.length === 3);
+    t = decimal ? t : milhar ? partes.join('') : '';
+  }
+  const m = /^(\d+)(?:\.(\d{1,2}))?$/.exec(t);
+  if (!m) return NaN;
+  const centavos = Number(m[1]) * 100 + Number((m[2] ?? '').padEnd(2, '0'));
+  return Number.isSafeInteger(centavos) && centavos > 0 ? centavos : NaN;
 }
 
 export const emReais = (centavos: bigint) => (Number(centavos) / 100).toFixed(2).replace('.', ',');

@@ -1,57 +1,139 @@
 @import "tailwindcss";
 
+/* Tema claro: papel quente, tinta quase preta. Dark mode em @media abaixo; impressão sempre clara. */
 @theme {
-  --color-papel: #f4f2ed;
-  --color-tinta: #1c1b18;
-  --color-suave: #6a665c;
-  --color-linha: #d5d1c6;
-  --color-acento: #1f3a5f;
-  --color-ok: #1e6b3b;
-  --color-alerta: #a85414;
+  --color-papel: #f5f0e4;
+  --color-folha: #fbf8f1;
+  --color-tinta: #1b1a16;
+  --color-suave: #5a5446;
+  --color-linha: #d6cfbc;
+  --color-acento: #0e5a62;   /* azul-petróleo: ao vivo, ações, foco */
+  --color-marinho: #1d3f72;  /* azul-marinho: valores monetários, agendado */
+  --color-ok: #41591a;       /* verde-oliva: ganhando, íntegro */
+  --color-alerta: #a3411f;   /* terracota: superado */
+  --color-ambar: #7a4b00;    /* âmbar: prazo, anti-sniping, saldo comprometido */
   --color-erro: #a3231a;
 }
 
 @theme inline {
   --font-sans: var(--font-plex), system-ui, sans-serif;
   --font-serif: var(--font-newsreader), Georgia, serif;
+  --font-mono: var(--font-plex-mono), ui-monospace, monospace;
+}
+
+/* Todos os pares texto/fundo abaixo medem pelo menos 4,5:1 (WCAG AA). */
+/* Escuro: preferência do sistema, salvo se a pessoa escolheu claro no botão; ou escolha explícita por data-tema. */
+@media screen and (prefers-color-scheme: dark) {
+  :root:not([data-tema='claro']) {
+    --color-papel: #14130e;
+    --color-folha: #1d1b14;
+    --color-tinta: #ece7d8;
+    --color-suave: #a8a191;
+    --color-linha: #3a362b;
+    --color-acento: #5fb4bd;
+    --color-marinho: #93b4e8;
+    --color-ok: #a9c466;
+    --color-alerta: #e5906a;
+    --color-ambar: #e6b04f;
+    --color-erro: #f08a7e;
+  }
+}
+@media screen {
+  :root[data-tema='escuro'] {
+    --color-papel: #14130e;
+    --color-folha: #1d1b14;
+    --color-tinta: #ece7d8;
+    --color-suave: #a8a191;
+    --color-linha: #3a362b;
+    --color-acento: #5fb4bd;
+    --color-marinho: #93b4e8;
+    --color-ok: #a9c466;
+    --color-alerta: #e5906a;
+    --color-ambar: #e6b04f;
+    --color-erro: #f08a7e;
+  }
 }
 
 @layer base {
+  :root { color-scheme: light dark; }
+  :root[data-tema='claro'] { color-scheme: light; }
+  :root[data-tema='escuro'] { color-scheme: dark; }
   *, ::after, ::before { border-color: var(--color-linha); }
   body {
     background: var(--color-papel);
     color: var(--color-tinta);
     font-variant-numeric: tabular-nums;
   }
-  h1, h2 { font-family: var(--font-serif); font-weight: 500; }
+  h1, h2 { font-family: var(--font-serif); font-weight: 500; letter-spacing: -0.015em; font-optical-sizing: auto; }
+  h2 { font-style: italic; }
+  ::selection { background: var(--color-acento); color: var(--color-papel); }
   a { text-underline-offset: 3px; }
   a:hover { text-decoration: underline; }
+  :focus-visible { outline: 2px solid var(--color-acento); outline-offset: 2px; }
 }
 
 @layer components {
   .campo {
     width: 100%;
-    background: #fff;
-    border: 1px solid var(--color-linha);
+    min-height: 2.75rem;
+    background: var(--color-folha);
+    color: var(--color-tinta);
+    border: 1px solid var(--color-suave);
     padding: 0.5rem 0.625rem;
   }
-  .campo:focus { outline: 2px solid var(--color-acento); outline-offset: -1px; }
+  .campo::placeholder { color: var(--color-suave); }
+  .campo[aria-invalid='true'] { border-color: var(--color-erro); border-width: 2px; }
   .btn {
-    border: 1px solid var(--color-tinta);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    min-height: 2.75rem;
+    border: 1px solid var(--color-acento);
+    color: var(--color-acento);
     padding: 0.5rem 0.875rem;
     font-weight: 500;
     cursor: pointer;
   }
-  .btn:hover:not(:disabled) { background: var(--color-tinta); color: var(--color-papel); }
-  .btn:disabled { opacity: 0.4; cursor: not-allowed; }
-  .btn-cheio { background: var(--color-tinta); color: var(--color-papel); }
-  .btn-cheio:hover:not(:disabled) { background: var(--color-acento); border-color: var(--color-acento); }
+  .btn:hover:not(:disabled) { background: var(--color-acento); color: var(--color-papel); text-decoration: none; }
+  .btn:disabled { color: var(--color-suave); border-color: var(--color-suave); cursor: not-allowed; }
+  .btn-cheio { background: var(--color-acento); color: var(--color-papel); }
+  .btn-cheio:hover:not(:disabled) { background: var(--color-tinta); border-color: var(--color-tinta); }
+  .btn-cheio:disabled { background: var(--color-suave); color: var(--color-papel); }
+  .btn-perigo { border-color: var(--color-erro); color: var(--color-erro); }
+  .btn-perigo:hover:not(:disabled) { background: var(--color-erro); color: var(--color-papel); }
   .rotulo {
     font-size: 0.75rem;
     text-transform: uppercase;
     letter-spacing: 0.06em;
     color: var(--color-suave);
   }
+  .link { color: var(--color-acento); text-decoration: underline; text-decoration-thickness: 1px; }
+  .link:hover { text-decoration-thickness: 2px; }
+  /* Área de toque de 44px para links e botões em texto. */
+  .alvo { display: inline-flex; align-items: center; min-height: 2.75rem; min-width: 2.75rem; }
+  /* Moedas, contadores, datas e hashes. */
+  .num { @apply font-mono tabular-nums; }
+  /* Destaque monetário: marinho + numerais tabulares. */
+  .valor { @apply font-mono tabular-nums font-medium; color: var(--color-marinho); }
+  /* Filtro e categoria em listas: o item ativo é invertido (forma), não só colorido. */
+  .filtro {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-height: 2.75rem;
+    padding: 0.25rem 0.75rem;
+    border: 1px solid var(--color-suave);
+    font-size: 0.875rem;
+    color: var(--color-tinta);
+  }
+  .filtro:hover { background: color-mix(in srgb, var(--color-tinta) 8%, transparent); text-decoration: none; }
+  .filtro[aria-current='page'] { background: var(--color-tinta); border-color: var(--color-tinta); color: var(--color-papel); font-weight: 500; }
+  /* Estado vazio e esqueleto de carregamento. */
+  .vazio { border: 1px dashed var(--color-suave); padding: 1.5rem 1rem; }
+  .esqueleto { background: var(--color-linha); }
+  /* Rolagem horizontal só no contêiner da tabela. */
+  .rolagem { overflow-x: auto; max-width: 100%; }
   .tabela { width: 100%; border-collapse: collapse; }
   .tabela th {
     text-align: left;
@@ -62,10 +144,40 @@
     color: var(--color-suave);
     padding: 0.5rem 0.75rem 0.5rem 0;
     border-bottom: 1px solid var(--color-tinta);
+    white-space: nowrap;
   }
   .tabela td {
     padding: 0.625rem 0.75rem 0.625rem 0;
     border-bottom: 1px solid var(--color-linha);
     vertical-align: top;
   }
+  .tabela tbody tr:hover { background: color-mix(in srgb, var(--color-tinta) 5%, transparent); }
+  /* Diálogo modal nativo (foco preso e Esc já vêm do navegador). */
+  .dialogo {
+    margin: auto;
+    width: calc(100% - 2rem);
+    max-width: 30rem;
+    background: var(--color-papel);
+    color: var(--color-tinta);
+    border: 1px solid var(--color-tinta);
+    border-top: 4px solid var(--color-erro);
+    padding: 1.25rem;
+  }
+  .dialogo::backdrop { background: color-mix(in srgb, var(--color-papel) 70%, #000); opacity: 0.8; }
+}
+
+@media print {
+  @page { margin: 1.5cm; }
+  body { background: none; color: #000; font-size: 10.5pt; }
+  header, footer { display: none; }
+  main { max-width: none; padding: 0; }
+  a { color: inherit; text-decoration: none; }
+  .alvo { min-height: 0; min-width: 0; }
+  .rolagem { overflow: visible; }
+  .tabela { font-size: 9pt; }
+  .tabela thead { display: table-header-group; }
+  .tabela tr { break-inside: avoid; }
+  .tabela td, .tabela th { padding-right: 0.4rem; }
+  code { font-size: 8.5pt; }
+  img { max-height: 7cm; break-inside: avoid; }
 }
