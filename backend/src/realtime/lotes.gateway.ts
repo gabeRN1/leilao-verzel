@@ -11,8 +11,9 @@ import {
 import { isUUID } from 'class-validator';
 import { Server, Socket } from 'socket.io';
 import { anonimizar } from '../auditoria/anonimo';
+import { ORIGENS } from '../origens';
 
-@WebSocketGateway({ cors: { origin: 'http://localhost:3000' } })
+@WebSocketGateway({ cors: { origin: ORIGENS } })
 export class LotesGateway implements OnGatewayInit, OnGatewayConnection {
   @WebSocketServer() private server!: Server;
 
