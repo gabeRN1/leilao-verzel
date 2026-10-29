@@ -1,78 +1,39 @@
-<div align="center">
+# Leilão · Back-end
 
-  <img src="../assets/logo.png" alt="logo" width="200" height="auto" />
-  <h1>Leilão · Back-end</h1>
+API do leilão: autenticação, carteira, lotes, motor de lances, tempo real, liquidação automática, comprovante e auditoria.
 
-  <p>
-    API do leilão: autenticação, carteira, lotes, motor de lances, tempo real, liquidação automática, comprovante e auditoria.
-  </p>
+Em produção: https://leilao-verzel-96i4.onrender.com (plano gratuito, a primeira requisição leva cerca de 1 minuto).
 
+## Índice
 
-
-<br />
-
-<!-- Table of Contents -->
-# Índice
-
-- [Sobre o projeto](#sobre-o-projeto)
-  * [Tecnologias](#tecnologias)
-  * [Funcionalidades](#funcionalidades)
-  * [Estrutura](#estrutura)
-  * [Variáveis de ambiente](#variáveis-de-ambiente)
-- [Primeiros passos](#primeiros-passos)
-  * [Pré-requisitos](#pré-requisitos)
-  * [Instalação](#instalação)
-  * [Scripts](#scripts)
-  * [Executando os testes](#executando-os-testes)
-  * [Seed](#seed)
-- [Uso](#uso)
-  * [Rotas](#rotas)
-  * [Tempo real](#tempo-real)
+- [Tecnologias](#tecnologias)
+- [Funcionalidades](#funcionalidades)
+- [Estrutura](#estrutura)
+- [Variáveis de ambiente](#variáveis-de-ambiente)
+- [Instalação](#instalação)
+- [Scripts](#scripts)
+- [Testes](#testes)
+- [Seed](#seed)
+- [Deploy](#deploy)
+- [Rotas](#rotas)
+- [Tempo real](#tempo-real)
 - [Regras de negócio](#regras-de-negócio)
 - [Concorrência](#concorrência)
 - [Resiliência da API externa](#resiliência-da-api-externa)
 - [Auditoria](#auditoria)
-- [Roadmap](#roadmap)
-- [Contribuindo](#contribuindo)
+- [Limites conhecidos](#limites-conhecidos)
 - [FAQ](#faq)
-- [Licença](#licença)
-- [Contato](#contato)
-- [Agradecimentos](#agradecimentos)
 
-<!-- About the Project -->
-## Sobre o projeto
+## Tecnologias
 
-API REST e WebSocket do leilão. Cuida de contas e carteiras, criação de lotes a partir do acervo da Harvard Art Museums, motor de lances com controle de concorrência, liquidação automática dos lotes vencidos, comprovante anonimizado e auditoria pública da cadeia de lances.
+- TypeScript, em CommonJS (sem `"type": "module"` no `package.json`)
+- NestJS 12
+- Socket.io
+- Prisma 6
+- PostgreSQL 16 (Neon em produção)
+- Vitest
 
-<!-- TechStack -->
-### Tecnologias
-
-<details>
-  <summary>Servidor</summary>
-  <ul>
-    <li><a href="https://www.typescriptlang.org/">TypeScript</a> (CommonJS, sem <code>"type": "module"</code> no <code>package.json</code>)</li>
-    <li><a href="https://nestjs.com/">NestJS 12</a></li>
-    <li><a href="https://socket.io/">Socket.io</a></li>
-    <li><a href="https://www.prisma.io/">Prisma 6</a></li>
-  </ul>
-</details>
-
-<details>
-<summary>Banco de dados</summary>
-  <ul>
-    <li><a href="https://www.postgresql.org/">PostgreSQL 16</a></li>
-  </ul>
-</details>
-
-<details>
-<summary>Testes</summary>
-  <ul>
-    <li><a href="https://vitest.dev/">Vitest</a></li>
-  </ul>
-</details>
-
-<!-- Features -->
-### Funcionalidades
+## Funcionalidades
 
 - Registro, login e guard JWT com papéis (leiloeiro e licitante)
 - Carteira com saldo total, comprometido e disponível
@@ -82,50 +43,41 @@ API REST e WebSocket do leilão. Cuida de contas e carteiras, criação de lotes
 - Liquidação automática e idempotente
 - Comprovante anonimizado e auditoria por cadeia de hashes
 
-<!-- Estrutura -->
-### Estrutura
+## Estrutura
 
 ```
 src/
-├── auth/         registro, login, guard JWT com papéis
-├── carteira/     saldo e depósito simulado
-├── lotes/        CRUD, busca de obras na Harvard, status derivado
-├── lances/       motor de lances, histórico e situação do usuário
-├── realtime/     gateway Socket.io
-├── liquidacao/   varredura de lotes vencidos e liquidação
-├── arremates/    arremates do licitante, vendas do leiloeiro, comprovante
-├── auditoria/    hash, anonimização e verificação da cadeia
-└── prisma/       cliente do banco
-prisma/           schema e migrations
-scripts/          seed, concorrência e escuta de eventos
-test/             testes e2e e helpers
+├── auth/          registro, login, guard JWT com papéis
+├── carteira/      saldo e depósito simulado
+├── lotes/         CRUD, busca de obras na Harvard, status derivado
+├── lances/        motor de lances, histórico e situação do usuário
+├── realtime/      gateway Socket.io
+├── liquidacao/    varredura de lotes vencidos e liquidação
+├── arremates/     arremates do licitante, vendas do leiloeiro, comprovante
+├── auditoria/     hash, anonimização e verificação da cadeia
+├── prisma/        cliente do banco
+├── configurar.ts  validação e serialização de BigInt, compartilhada com os testes
+└── origens.ts     origens permitidas no CORS (lê FRONTEND_URL)
+prisma/            schema e migrations
+scripts/           seed, concorrência e escuta de eventos
+test/              testes e2e e helpers
 ```
 
-<!-- Env Variables -->
-### Variáveis de ambiente
-
-Para rodar o projeto, adicione as seguintes variáveis ao seu arquivo `.env`:
+## Variáveis de ambiente
 
 | Variável | Uso |
 |---|---|
-| `DATABASE_URL` | Conexão com o PostgreSQL. Padrão do Compose: `postgresql://leilao:leilao@localhost:5432/leilao` |
+| `DATABASE_URL` | Conexão com o PostgreSQL. Local: `postgresql://leilao:leilao@localhost:5432/leilao` |
 | `JWT_SECRET` | Segredo de assinatura dos tokens (expiram em 1 dia) |
 | `HARVARD_API_KEY` | Chave da Harvard Art Museums. Sem ela, criar lote e buscar obras retornam 500 |
+| `FRONTEND_URL` | Origem(ns) permitida(s) no CORS e no WebSocket, separadas por vírgula, sem barra final. Padrão: `http://localhost:3000` |
+| `PORT` | Porta da API. Padrão: `3001` |
 
-O `.env.example` traz as três sem valores reais. O `.env` não é versionado.
+O `.env.example` traz as variáveis sem valores reais. O `.env` não é versionado. O CORS compara a origem exatamente: `https://app.vercel.app/` (com barra) não bate com `https://app.vercel.app`. Domínios de preview da Vercel são outras origens e precisam ser listados.
 
-<!-- Getting Started -->
-## Primeiros passos
+## Instalação
 
-<!-- Prerequisites -->
-### Pré-requisitos
-
-- Node.js LTS recente
-- PostgreSQL 16 no ar (`docker compose up -d` na raiz do repositório)
-- Chave da Harvard Art Museums
-
-<!-- Installation -->
-### Instalação
+Pré-requisitos: Node.js LTS recente, PostgreSQL 16 no ar (`docker compose up -d db` na raiz do repositório) e a chave da Harvard.
 
 ```bash
 cd backend
@@ -135,12 +87,12 @@ npx prisma migrate deploy
 npm run start:dev        # http://localhost:3001
 ```
 
-<!-- Scripts -->
-### Scripts
+## Scripts
 
 | Comando | O que faz |
 |---|---|
 | `npm run start:dev` | Sobe a API em `localhost:3001` com recarga |
+| `npm run build` | Compila para `dist/` |
 | `npm run seed` | Cria contas e um lote ao vivo com lances, pela própria API |
 | `npm test` | Testes unitários |
 | `npm run test:e2e` | Testes de integração contra o PostgreSQL |
@@ -149,29 +101,39 @@ npm run start:dev        # http://localhost:3001
 
 Migrations: `npx prisma migrate deploy`.
 
-<!-- Running Tests -->
-### Executando os testes
+## Testes
 
 - **Unitários** (`src/**/*.spec.ts`): hash, anonimização, verificação da cadeia e status derivado do lote.
 - **E2E** (`test/*.e2e-spec.ts`): auth e carteira, lotes (com a Harvard simulada), lances (limites exatos, saldo, anti-sniping e concorrência), liquidação (idempotência), realtime e auditoria (adulteração direto no banco).
 
+Os e2e usam o banco do `DATABASE_URL`. Cada arquivo cria usuários com e-mail prefixado e apaga tudo no fim, sem tocar nos seus dados. Com `NODE_ENV=test` o timer de liquidação fica desligado, e os testes chamam a liquidação diretamente. **Não aponte o `DATABASE_URL` para o banco de produção ao rodar os testes.**
+
+## Seed
+
+`scripts/seed.mjs` fala com a API em execução em vez de escrever no banco, para que os lances passem pelo motor real e a auditoria valide o resultado. Aceita `API_URL` e `OBRA_ID` por variável de ambiente. Para popular a produção:
+
 ```bash
-npm test
-npm run test:e2e
+API_URL=https://leilao-verzel-96i4.onrender.com npm run seed
 ```
 
-Os e2e usam o banco do `DATABASE_URL`. Cada arquivo cria usuários com e-mail prefixado e apaga tudo no fim, sem tocar nos seus dados. Com `NODE_ENV=test` o timer de liquidação fica desligado, e os testes chamam a liquidação diretamente.
+A chave usada para criar o lote é a `HARVARD_API_KEY` do servidor (Render), não a da sua máquina.
 
-<!-- Seed -->
-### Seed
+## Deploy
 
-`scripts/seed.mjs` fala com a API em execução em vez de escrever no banco, para que os lances passem pelo motor real e a auditoria valide o resultado. Aceita `API_URL` e `OBRA_ID` por variável de ambiente.
+| Campo (Render) | Valor |
+|---|---|
+| Root Directory | `backend` |
+| Build Command | `npm ci --include=dev && npx prisma generate && npm run build` |
+| Start Command | `npx prisma migrate deploy && node dist/main` |
+| Health Check Path | `/lotes` |
 
-<!-- Usage -->
-## Uso
+O `--include=dev` é necessário porque o Nest CLI e o Prisma CLI estão em `devDependencies`, e o `prisma generate` explícito cobre ambientes que bloqueiam scripts de instalação. A API lê `PORT`, que o Render define.
 
-<!-- Rotas -->
-### Rotas
+No Neon, use a connection string **direta** (sem `-pooler` no host), com `?sslmode=require&connect_timeout=15`. Os locks `FOR UPDATE` do motor de lances e o `migrate deploy` funcionam melhor sem o pooler, e o `connect_timeout` cobre o banco acordando depois de ocioso.
+
+Evite pingar a API para mantê-la acordada: a liquidação consulta o banco a cada segundo, o que manteria o Neon ligado o tempo todo e pode estourar o limite do plano gratuito.
+
+## Rotas
 
 Todas as rotas autenticadas usam `Authorization: Bearer <token>`.
 
@@ -181,7 +143,7 @@ Todas as rotas autenticadas usam `Authorization: Bearer <token>`.
 | POST | `/auth/login` | público | Devolve token |
 | GET | `/carteira` | autenticado | Saldo total, comprometido e disponível |
 | POST | `/carteira/depositos` | licitante | Depósito simulado, em centavos |
-| GET | `/lotes?status=` | público | Vitrine. Status: `AGENDADO`, `AO_VIVO`, `ENCERRADO`, `CANCELADO` |
+| GET | `/lotes?status=` | público | Vitrine (até 100 lotes). Status: `AGENDADO`, `AO_VIVO`, `ENCERRADO`, `CANCELADO` |
 | GET | `/lotes/:id` | público | Detalhe do lote |
 | GET | `/lotes/meus` | leiloeiro | Lotes do leiloeiro |
 | GET | `/lotes/obras?q=` | leiloeiro | Busca obras na Harvard (mínimo 2 caracteres) |
@@ -195,12 +157,11 @@ Todas as rotas autenticadas usam `Authorization: Bearer <token>`.
 | GET | `/arremates/:id/comprovante` | público | Comprovante anonimizado |
 | GET | `/auditoria/:loteId` | público | Selo e cadeia de lances |
 
-Erros do lance: `409` (lote fora do ar ou líder repetido), `422` (abaixo do mínimo ou saldo insuficiente).
+Erros do lance: `409` (lote fora do ar ou líder repetido), `422` (abaixo do mínimo ou saldo insuficiente). A busca por texto da vitrine é feita no front, sobre o que `GET /lotes` devolve. A API só filtra por status.
 
-<!-- Tempo real -->
-### Tempo real
+## Tempo real
 
-Socket.io no mesmo endereço da API. O token é opcional no handshake (`auth: { token }`): sem ele a conexão é anônima e só assiste.
+Socket.io no mesmo endereço da API. O token é opcional no handshake (`auth: { token }`): sem ele a conexão é anônima e só assiste. A origem precisa estar em `FRONTEND_URL`, igual ao HTTP.
 
 | Direção | Evento | Conteúdo |
 |---|---|---|
@@ -213,7 +174,6 @@ Socket.io no mesmo endereço da API. O token é opcional no handshake (`auth: { 
 
 Os eventos de `ganhando`, `superado` e `arrematado` vão para a sala privada do usuário. O id real nunca vai no broadcast.
 
-<!-- Regras de negócio -->
 ## Regras de negócio
 
 - **Papéis.** O leiloeiro cria e cancela lotes e vê resultados, mas não dá lances. O licitante deposita e dá lances.
@@ -226,17 +186,14 @@ Os eventos de `ganhando`, `superado` e `arrematado` vão para a sala privada do 
 - **Status.** Só `ABERTO`, `ENCERRADO` e `CANCELADO` são gravados. `AGENDADO` e `AO_VIVO` são derivados do horário, e um lote aberto com fim vencido já aparece como encerrado.
 - **Cancelamento.** Um único `UPDATE` condicional (aberto, sem líder, dono): não há janela entre checar lances e cancelar.
 
-<!-- Concorrência -->
 ## Concorrência
 
 Ordem de locks, igual no motor de lances e na liquidação: primeiro a linha do lote, depois as carteiras por id crescente. O relógio é lido depois do lock, então quem esperou na fila é avaliado no instante real e esse mesmo instante vira o `criadoEm` do lance. Os eventos de tempo real saem após o commit, para nunca anunciar um lance que sofreu rollback.
 
-<!-- Resiliência -->
 ## Resiliência da API externa
 
 `POST /lotes` consulta a Harvard uma vez e grava `titulo`, `imagemUrl`, `origemId` e `atributos` no lote. Nenhuma outra rota chama a API externa. Com a Harvard fora, a criação responde 502 e todo o resto continua funcionando. O comportamento é coberto por teste e2e.
 
-<!-- Auditoria -->
 ## Auditoria
 
 Cada lance guarda:
@@ -257,61 +214,27 @@ No fim compara o último lance com `valorAtual` e `liderId` do lote (`LOTE_DIVER
 
 Quem altera um lance e recalcula o próprio hash é pego pelo encadeamento do lance seguinte. Quem reescreve a cadeia inteira não é detectado pela verificação em si; o `hashFinal` do comprovante serve de âncora externa para esse caso.
 
+Para demonstrar a detecção, altere um lance direto no banco (`UPDATE "Lance" SET valor = valor + 1 WHERE ...`), recarregue a página de auditoria e **desfaça a alteração em seguida**.
+
 **Privacidade.** Licitantes aparecem como `***` mais 4 caracteres do SHA-256 do id, sem expor o id. A mesma função serve a auditoria, o comprovante, a sala e as vendas.
 
-<!-- Roadmap -->
-## Roadmap
+## Limites conhecidos
 
-- [x] Motor de lances com locks ordenados
-- [x] Liquidação automática e idempotente
-- [x] Auditoria por cadeia de hashes
-- [ ] Mover o timer de liquidação para um único worker (hoje cada instância faz a varredura)
-- [ ] Outbox ou reentrega para eventos perdidos entre o commit e o envio
-
-Limites conhecidos:
-
-- A liquidação só roda com o servidor ligado. Lotes vencidos nesse intervalo são liquidados na primeira varredura ao subir.
+- A liquidação só roda com o servidor ligado. No plano gratuito do Render a API dorme, e os lotes vencidos nesse intervalo são liquidados na primeira varredura ao acordar.
 - O timer de liquidação roda no processo da API. Com várias instâncias, o lock e a releitura sob lock mantêm a operação correta, mas cada instância faria a varredura.
 - Em caso de queda entre o commit e o envio do evento, o evento se perde. O front se recupera relendo o estado ao reconectar.
+- O cancelamento só aceita lotes sem lances, então não há estorno.
 
-<!-- Contributing -->
-## Contribuindo
-
-Contribuições são sempre bem-vindas!
-
-Veja `contributing.md` para saber como começar e leia o [Código de Conduta](https://github.com/SEU_USUARIO/leilao/blob/master/CODE_OF_CONDUCT.md).
-
-<!-- FAQ -->
 ## FAQ
 
-- Por que o seed usa a API em vez de escrever no banco?
+**Por que o seed usa a API em vez de escrever no banco?**
+Para que os lances passem pelo motor real e a auditoria valide o resultado.
 
-  + Para que os lances passem pelo motor real e a auditoria valide o resultado.
+**O que acontece com eventos de tempo real perdidos numa queda?**
+Eles não voltam. O front relê o estado pela API ao reconectar.
 
-- O que acontece com eventos de tempo real perdidos numa queda?
+**Por que `HARVARD_API_KEY` é obrigatória?**
+Sem ela, criar lote e buscar obras retornam 500. As demais rotas não dependem da Harvard.
 
-  + Eles não voltam. O front relê o estado pela API ao reconectar.
-
-- Por que `HARVARD_API_KEY` é obrigatória?
-
-  + Sem ela, criar lote e buscar obras retornam 500. As demais rotas não dependem da Harvard.
-
-<!-- License -->
-## Licença
-
-Distribuído sob a licença INDICAR_LICENÇA. Veja `LICENSE.txt` para mais informações.
-
-<!-- Contact -->
-## Contato
-
-Seu Nome - [@seu_usuario](https://twitter.com/seu_usuario) - email@exemplo.com
-
-Link do projeto: [https://github.com/SEU_USUARIO/leilao](https://github.com/SEU_USUARIO/leilao)
-
-<!-- Acknowledgments -->
-## Agradecimentos
-
-- [Harvard Art Museums API](https://harvardartmuseums.org/collections/api)
-- [Shields.io](https://shields.io/)
-- [Awesome README](https://github.com/matiassingers/awesome-readme)
-- [Awesome README Template](https://github.com/Louis3797/awesome-readme-template)
+**O front na Vercel carrega, mas as chamadas falham com erro de CORS.**
+`FRONTEND_URL` precisa ser a URL exata da Vercel, sem barra final. O mesmo vale para o WebSocket: se o HTTP funciona e os avisos de lance não atualizam, confira a origem do gateway.

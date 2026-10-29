@@ -1,133 +1,100 @@
-<div align="center">
+# Leilão
 
-  <img src="assets/logo.png" alt="logo" width="200" height="auto" />
-  <h1>Leilão</h1>
-
-  <p>
-    Casa de leilões online com lances em tempo real e auditoria pública por cadeia de hashes.
-  </p>
-
-<!-- Badges -->
-
-</div>
-
-<br />
-
-<!-- Table of Contents -->
-# Índice
-
-- [Sobre o projeto](#sobre-o-projeto)
-  * [Capturas de tela](#capturas-de-tela)
-  * [Tecnologias](#tecnologias)
-  * [Funcionalidades](#funcionalidades)
-  * [Estrutura](#estrutura)
-  * [Variáveis de ambiente](#variáveis-de-ambiente)
-  * [Decisões de arquitetura](#decisões-de-arquitetura)
-- [Primeiros passos](#primeiros-passos)
-  * [Pré-requisitos](#pré-requisitos)
-  * [Como rodar](#como-rodar)
-  * [Executando os testes](#executando-os-testes)
-- [Uso](#uso)
-- [Roadmap](#roadmap)
-- [Contribuindo](#contribuindo)
-  * [Código de conduta](#código-de-conduta)
-- [FAQ](#faq)
-- [Licença](#licença)
-- [Contato](#contato)
-- [Agradecimentos](#agradecimentos)
-
-<!-- About the Project -->
-## Sobre o projeto
+Casa de leilões online com lances em tempo real e auditoria pública por cadeia de hashes.
 
 Leiloeiros criam lotes a partir do acervo do Harvard Art Museums, licitantes dão lances em tempo real e cada lance entra numa cadeia de hashes que qualquer pessoa pode auditar sem login.
 
-Cada pasta tem o próprio README com o detalhe:
+Cada pasta tem o próprio README:
 
-- [backend/README.md](backend/README.md): rotas, regras de negócio, concorrência, auditoria e testes
+- [backend/README.md](backend/README.md): rotas, regras de negócio, concorrência, auditoria, testes e deploy
 - [frontend/README.md](frontend/README.md): telas, sessão, tempo real e decisões de interface
 
-<!-- Screenshots -->
-### Capturas de tela
+## Índice
 
-<div align="center">
-  <img src="https://placehold.co/600x400?text=Sua+captura+de+tela+aqui" alt="screenshot" />
-</div>
+- [Capturas de tela](#capturas-de-tela)
+- [Tecnologias](#tecnologias)
+- [Funcionalidades](#funcionalidades)
+- [Estrutura](#estrutura)
+- [Variáveis de ambiente](#variáveis-de-ambiente)
+- [Decisões de arquitetura](#decisões-de-arquitetura)
+- [Hospedagem](#hospedagem)
+- [Como rodar](#como-rodar)
+- [Testes](#testes)
+- [Contas do seed](#contas-do-seed)
+- [Limites conhecidos](#limites-conhecidos)
+- [FAQ](#faq)
+- [Repositório](#repositório)
 
-<!-- TechStack -->
-### Tecnologias
+## Capturas de tela
 
-<details>
-  <summary>Cliente</summary>
-  <ul>
-    <li><a href="https://nextjs.org/">Next.js (App Router)</a></li>
-    <li><a href="https://tailwindcss.com/">Tailwind CSS 4</a></li>
-  </ul>
-</details>
+**Vitrine**: busca por título, artista ou cultura, filtro por estado e por categoria.
 
-<details>
-  <summary>Servidor</summary>
-  <ul>
-    <li><a href="https://nestjs.com/">NestJS 12</a></li>
-    <li><a href="https://www.prisma.io/">Prisma 6</a></li>
-    <li><a href="https://socket.io/">Socket.io</a></li>
-  </ul>
-</details>
+![Vitrine](docs/prints/vitrine.jpeg)
 
-<details>
-<summary>Banco de dados</summary>
-  <ul>
-    <li><a href="https://www.postgresql.org/">PostgreSQL 16</a></li>
-  </ul>
-</details>
+**Sala ao vivo, visão do leiloeiro**: valor atual, contador, histórico com o líder marcado e dados da obra. O leiloeiro não dá lances.
 
-<details>
-<summary>API externa</summary>
-  <ul>
-    <li><a href="https://harvardartmuseums.org/collections/api">Harvard Art Museums</a></li>
-  </ul>
-</details>
+![Sala ao vivo](docs/prints/sala.jpeg)
 
-<details>
-<summary>DevOps</summary>
-  <ul>
-    <li><a href="https://www.docker.com/">Docker Compose</a> (apenas o PostgreSQL)</li>
-  </ul>
-</details>
+**Sala ao vivo, visão do licitante líder**: o aviso "Você está ganhando" aparece sem recarregar a página.
 
-<!-- Features -->
-### Funcionalidades
+![Sala do licitante](docs/prints/sala-dois-licitantes.jpeg)
+
+**Carteira**: saldo total, comprometido em lances e disponível.
+
+![Carteira](docs/prints/carteira.jpeg)
+
+**Painel do leiloeiro, novo lote**: busca de obras na Harvard, escolha da obra e definição de lance inicial, incremento, início e fim.
+
+![Novo lote](docs/prints/painel-novo-lote.jpeg)
+
+**Auditoria pública**: selo Íntegro, licitantes anonimizados, hash de cada lance e hash do lance anterior.
+
+![Auditoria](docs/prints/auditoria-integro.jpeg)
+
+## Tecnologias
+
+- Front-end: Next.js (App Router), Tailwind CSS 4, socket.io-client, lucide-react
+- Back-end: NestJS 12, Prisma 6, Socket.io, TypeScript
+- Banco: PostgreSQL 16 (Neon em produção)
+- API externa: Harvard Art Museums
+- Testes: Vitest
+- Hospedagem: Vercel (front), Render (back), Neon (banco)
+- Docker Compose para o banco local
+
+## Funcionalidades
 
 - Lotes criados a partir de obras do Harvard Art Museums
-- Lances em tempo real via WebSocket, com badge "Ganhando" ou "Superado"
+- Vitrine com busca (título, artista, classificação e cultura), filtro por estado e por categoria
+- Lances em tempo real via WebSocket, com aviso "Ganhando" ou "Superado"
 - Saldo comprometido: o valor do lance fica bloqueado para o líder e volta quando ele é superado
 - Anti-sniping: lance nos últimos 2 minutos soma 2 minutos ao fim do lote
 - Liquidação automática dos lotes vencidos
 - Comprovante anonimizado e auditoria pública da cadeia de lances (selo Íntegro ou Adulterado)
+- Cópia dos hashes, impressão do comprovante e da auditoria, tema claro e escuro
 
-<!-- Estrutura -->
-### Estrutura
+## Estrutura
 
 ```
 .
-├── docker-compose.yml   PostgreSQL
+├── docker-compose.yml   banco PostgreSQL
 ├── backend/             API NestJS, WebSocket, liquidação, auditoria
 └── frontend/            Next.js
 ```
 
-<!-- Env Variables -->
-### Variáveis de ambiente
+## Variáveis de ambiente
 
-Cada aplicação tem o próprio `.env.example`:
-
-| Aplicação | Variável | Uso |
+| Onde | Variável | Uso |
 |---|---|---|
 | backend | `DATABASE_URL` | Conexão com o PostgreSQL |
 | backend | `JWT_SECRET` | Segredo de assinatura dos tokens |
 | backend | `HARVARD_API_KEY` | Chave da Harvard Art Museums |
-| frontend | `NEXT_PUBLIC_API_URL` | Endereço da API (padrão `http://localhost:3001`) |
+| backend | `FRONTEND_URL` | Origem(ns) permitida(s) no CORS, separadas por vírgula, sem barra final. Padrão: `http://localhost:3000` |
+| backend | `PORT` | Porta da API. Padrão: `3001` |
+| frontend | `NEXT_PUBLIC_API_URL` | Endereço da API. Padrão: `http://localhost:3001` |
 
-<!-- Arquitetura -->
-### Decisões de arquitetura
+Cada aplicação tem o próprio `.env.example`. Os arquivos `.env` não são versionados. `NEXT_PUBLIC_API_URL` é gravada no build do front: ao mudar, faça novo build ou redeploy.
+
+## Decisões de arquitetura
 
 **Resiliência da API externa.** Ao criar um lote, título, URL da imagem e atributos da obra são copiados para o banco. Vitrine, sala, auditoria e comprovante leem só do PostgreSQL. Se a Harvard cair, apenas a criação de lotes novos fica indisponível.
 
@@ -143,23 +110,38 @@ Cada aplicação tem o próprio `.env.example`:
 
 **Dinheiro.** Sempre em centavos, inteiro (`BigInt` no banco, string no JSON).
 
-<!-- Getting Started -->
-## Primeiros passos
+## Hospedagem
 
-<!-- Prerequisites -->
-### Pré-requisitos
+| Parte | Serviço | Endereço |
+|---|---|---|
+| Front-end | Vercel | <URL DA VERCEL> |
+| Back-end | Render | https://leilao-verzel-96i4.onrender.com |
+| Banco | Neon (PostgreSQL) | não público |
 
-- Node.js LTS recente
-- Docker com Compose
-- Chave gratuita da Harvard Art Museums: https://harvardartmuseums.org/collections/api
+**Atenção:** o back-end está em plano gratuito e dorme após inatividade. A primeira requisição leva cerca de 1 minuto. Abra `https://leilao-verzel-96i4.onrender.com/lotes`, espere responder e só então use o front. Enquanto a API dorme, a vitrine mostra a tela de erro, e "Tentar de novo" funciona depois que ela acorda.
 
-<!-- Run Locally -->
-### Como rodar
+Contas de demonstração (senha `senha1234`): `leiloeiro@exemplo.com`, `ana@exemplo.com` e `bruno@exemplo.com`.
+
+Configuração em produção:
+
+| Serviço | Variável | Valor |
+|---|---|---|
+| Render | `DATABASE_URL` | Conexão direta do Neon (sem `-pooler`), com `?sslmode=require&connect_timeout=15` |
+| Render | `JWT_SECRET` | Segredo longo e aleatório |
+| Render | `HARVARD_API_KEY` | Chave da Harvard Art Museums |
+| Render | `FRONTEND_URL` | URL exata da Vercel, sem barra final |
+| Vercel | `NEXT_PUBLIC_API_URL` | `https://leilao-verzel-96i4.onrender.com`, sem barra final |
+
+O banco do Neon é populado pela API publicada: `API_URL=https://leilao-verzel-96i4.onrender.com npm run seed`, dentro de `backend/`.
+
+## Como rodar
+
+Pré-requisitos: Node.js LTS recente, Docker com Compose e uma chave gratuita da Harvard Art Museums (https://harvardartmuseums.org/collections/api).
 
 **1. Banco**
 
 ```bash
-docker compose up -d
+docker compose up -d db
 docker compose ps        # db deve aparecer como healthy
 ```
 
@@ -191,8 +173,7 @@ npm run dev              # http://localhost:3000
 
 As páginas de vitrine, comprovante e auditoria são renderizadas no servidor do Next e consultam a API a cada carregamento, então o back-end precisa estar no ar.
 
-<!-- Running Tests -->
-### Executando os testes
+## Testes
 
 ```bash
 cd backend
@@ -201,12 +182,11 @@ npm run test:e2e                  # integração, exige o PostgreSQL no ar
 node scripts/concorrencia.mjs     # 20 lances simultâneos contra o servidor real
 ```
 
-O front-end não tem testes automatizados.
+O front-end não tem testes automatizados. O roteiro manual está em [frontend/README.md](frontend/README.md#testes).
 
-<!-- Usage -->
-## Uso
+## Contas do seed
 
-Contas criadas pelo seed (senha de todas: `senha1234`):
+Senha de todas: `senha1234`
 
 | Papel | E-mail |
 |---|---|
@@ -216,72 +196,28 @@ Contas criadas pelo seed (senha de todas: `senha1234`):
 
 O seed cria um lote ao vivo com três lances (Ana lidera). Pode ser repetido: contas existentes são reaproveitadas e, se já houver um lote ao vivo do leiloeiro, nenhum outro é criado.
 
-<!-- Roadmap -->
-## Roadmap
-
-- [x] Motor de lances com concorrência segura
-- [x] Tempo real, liquidação automática e auditoria pública
-- [ ] Guardar o token em cookie `HttpOnly` em vez de `localStorage`
-- [ ] Âncora externa da cadeia de hashes (hoje só o `hashFinal` do comprovante)
-- [ ] Estorno para cancelamento de lotes com lances
-- [ ] Testes automatizados no front-end
-- [ ] Back-end e front-end no Compose
-
-Limites conhecidos hoje:
+## Limites conhecidos
 
 - A hash chain detecta alteração, mas quem controla o banco inteiro pode reescrever a cadeia recalculando todos os hashes. O comprovante traz o hash do último lance para o vencedor guardá-lo fora do sistema: uma cadeia reescrita deixa de bater com ele.
+- O cancelamento só é permitido em lotes sem lances, por isso não há estorno.
 - A imagem do lote é carregada do servidor da Harvard pelo navegador. A URL fica salva, os bytes não.
+- O token JWT fica no `localStorage`, exposto a XSS. Em produção, o correto é cookie `HttpOnly`.
 - O papel (leiloeiro ou licitante) é escolhido no cadastro, para facilitar a demonstração.
 - O anonimato usa 4 caracteres, então dois licitantes do mesmo lote podem colidir (cerca de 0,3% com 20 participantes).
-- O cancelamento só é permitido em lotes sem lances, por isso não há estorno.
+- A busca da vitrine roda no front, sobre os 100 lotes que a API devolve por estado.
+- No plano gratuito do Render a API dorme, e a liquidação só roda com ela acordada. Lotes vencidos nesse intervalo são liquidados quando ela volta.
 
-<!-- Contributing -->
-## Contribuindo
-
-<a href="https://github.com/SEU_USUARIO/leilao/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=SEU_USUARIO/leilao" />
-</a>
-
-Contribuições são sempre bem-vindas!
-
-Veja `contributing.md` para saber como começar.
-
-<!-- Code of Conduct -->
-### Código de conduta
-
-Leia o [Código de Conduta](https://github.com/SEU_USUARIO/leilao/blob/master/CODE_OF_CONDUCT.md).
-
-<!-- FAQ -->
 ## FAQ
 
-- O que acontece se a Harvard Art Museums sair do ar?
+**O que acontece se a Harvard Art Museums sair do ar?**
+Só a criação de lotes novos responde 502. Todo o resto lê do PostgreSQL e continua funcionando.
 
-  + Só a criação de lotes novos responde 502. Todo o resto lê do PostgreSQL e continua funcionando.
+**A primeira página demora ou mostra erro. Por quê?**
+A API está em plano gratuito e dorme. Abra `/lotes` na URL dela, espere responder e recarregue.
 
-- O back-end precisa estar no ar para o front-end funcionar?
+**Como verifico se um lote foi adulterado?**
+Abra `/auditoria/[loteId]`, sem login. A página recalcula a cadeia inteira e mostra o selo Íntegro ou Adulterado.
 
-  + Sim. Vitrine, comprovante e auditoria são renderizadas no servidor do Next e consultam a API a cada carregamento.
+## Repositório
 
-- Como verifico se um lote foi adulterado?
-
-  + Abra `/auditoria/[loteId]` (sem login). A página recalcula a cadeia inteira e mostra o selo Íntegro ou Adulterado.
-
-<!-- License -->
-## Licença
-
-Distribuído sob a licença INDICAR_LICENÇA. Veja `LICENSE.txt` para mais informações.
-
-<!-- Contact -->
-## Contato
-
-Seu Nome - [@seu_usuario](https://twitter.com/seu_usuario) - email@exemplo.com
-
-Link do projeto: [https://github.com/SEU_USUARIO/leilao](https://github.com/SEU_USUARIO/leilao)
-
-<!-- Acknowledgments -->
-## Agradecimentos
-
-- [Harvard Art Museums API](https://harvardartmuseums.org/collections/api)
-- [Shields.io](https://shields.io/)
-- [Awesome README](https://github.com/matiassingers/awesome-readme)
-- [Awesome README Template](https://github.com/Louis3797/awesome-readme-template)
+https://github.com/gabeRN1/leilao-verzel · gabj111222@gmail.com

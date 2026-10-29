@@ -1,92 +1,82 @@
-<div align="center">
+# Leilão · Front-end
 
-  <img src="../assets/logo.png" alt="logo" width="200" height="auto" />
-  <h1>Leilão · Front-end</h1>
+Interface do leilão: vitrine, sala ao vivo, carteira, painel do leiloeiro, comprovante e auditoria pública.
 
-  <p>
-    Interface do leilão: vitrine, sala ao vivo, carteira, painel do leiloeiro, comprovante e auditoria pública.
-  </p>
+Em produção: <URL DA VERCEL>. O back-end fica em plano gratuito e dorme após inatividade, então a primeira carga pode mostrar a tela de erro. Abra `https://leilao-verzel-96i4.onrender.com/lotes`, espere responder e recarregue.
 
+## Índice
 
-
-
-<br />
-
-<!-- Table of Contents -->
-# Índice
-
-- [Sobre o projeto](#sobre-o-projeto)
-  * [Capturas de tela](#capturas-de-tela)
-  * [Tecnologias](#tecnologias)
-  * [Funcionalidades](#funcionalidades)
-  * [Estrutura](#estrutura)
-  * [Variáveis de ambiente](#variáveis-de-ambiente)
-- [Primeiros passos](#primeiros-passos)
-  * [Pré-requisitos](#pré-requisitos)
-  * [Instalação](#instalação)
-  * [Executando os testes](#executando-os-testes)
-- [Uso](#uso)
-  * [Rotas](#rotas)
-  * [Como funciona](#como-funciona)
+- [Capturas de tela](#capturas-de-tela)
+- [Tecnologias](#tecnologias)
+- [Funcionalidades](#funcionalidades)
+- [Estrutura](#estrutura)
+- [Variáveis de ambiente](#variáveis-de-ambiente)
+- [Instalação](#instalação)
+- [Testes](#testes)
+- [Deploy](#deploy)
+- [Rotas](#rotas)
+- [Como funciona](#como-funciona)
 - [Decisões de interface](#decisões-de-interface)
-- [Roadmap](#roadmap)
-- [Contribuindo](#contribuindo)
+- [Limites conhecidos](#limites-conhecidos)
 - [FAQ](#faq)
-- [Licença](#licença)
-- [Contato](#contato)
-- [Agradecimentos](#agradecimentos)
 
-<!-- About the Project -->
-## Sobre o projeto
+## Capturas de tela
 
-Front-end do leilão em Next.js: vitrine pública, sala ao vivo com lances em tempo real, carteira do licitante, painel do leiloeiro, comprovante anonimizado e página pública de auditoria da cadeia de lances.
+**Vitrine**: busca por título, artista ou cultura, filtro por estado e por categoria.
 
-<!-- Screenshots -->
-### Capturas de tela
+![Vitrine](../docs/prints/vitrine.jpeg)
 
-<div align="center">
-  <img src="https://placehold.co/600x400?text=Sua+captura+de+tela+aqui" alt="screenshot" />
-</div>
+**Sala ao vivo, visão do leiloeiro**
 
-<!-- TechStack -->
-### Tecnologias
+![Sala ao vivo](../docs/prints/sala.jpeg)
 
-<details>
-  <summary>Cliente</summary>
-  <ul>
-    <li><a href="https://nextjs.org/">Next.js (App Router)</a></li>
-    <li><a href="https://reactjs.org/">React</a></li>
-    <li><a href="https://tailwindcss.com/">Tailwind CSS 4</a></li>
-    <li><a href="https://socket.io/docs/v4/client-api/">socket.io-client</a></li>
-  </ul>
-</details>
+**Sala ao vivo, visão do licitante líder**: "Você está ganhando" sem recarregar a página.
 
-<details>
-  <summary>Fontes</summary>
-  <ul>
-    <li>Newsreader e IBM Plex Sans, via <code>next/font/google</code>, que baixa os arquivos no desenvolvimento e no build</li>
-  </ul>
-</details>
+![Sala do licitante](../docs/prints/sala-dois-licitantes.jpeg)
 
-Sem biblioteca de componentes e sem biblioteca de ícones.
+**Carteira**
 
-<!-- Features -->
-### Funcionalidades
+![Carteira](../docs/prints/carteira.jpeg)
 
-- Vitrine com filtro por status
+**Painel do leiloeiro, novo lote**
+
+![Novo lote](../docs/prints/painel-novo-lote.jpeg)
+
+**Auditoria pública**
+
+![Auditoria](../docs/prints/auditoria-integro.jpeg)
+
+## Tecnologias
+
+- Next.js (App Router) e React
+- Tailwind CSS 4
+- socket.io-client
+- lucide-react, para poucos ícones (tema, copiar, confirmação)
+- Newsreader e IBM Plex Sans, via `next/font/google`, que baixa os arquivos no desenvolvimento e no build
+
+Sem biblioteca de componentes.
+
+## Funcionalidades
+
+- Vitrine com busca (título, artista, classificação e cultura, sem diferenciar acento), filtro por estado e por categoria
 - Sala ao vivo: valor, contador, lance e histórico atualizados por Socket.io
-- Badge "Ganhando" ou "Superado" sem recarregar a página
+- Aviso "Ganhando" ou "Superado" sem recarregar a página, anunciado a leitores de tela por região `aria-live`
 - Contador sincronizado com o relógio do servidor, com aviso de anti-sniping
 - Carteira com saldos e depósito simulado
 - Painel do leiloeiro: lotes, cancelamento, resultados e criação de lote a partir de obra
-- Comprovante anonimizado e auditoria pública (selo Íntegro ou Adulterado)
+- Comprovante anonimizado e auditoria pública (selo Íntegro ou Adulterado), com cópia dos hashes e impressão
+- Tema claro e escuro
+- Estados de carregamento, erro e página não encontrada
 
-<!-- Estrutura -->
-### Estrutura
+## Estrutura
 
 ```
-app/              páginas e layout
-components/       cabecalho e estado (só o que tem reuso)
+app/              páginas, layout, loading, error e not-found
+components/
+├── cabecalho.tsx navegação, sessão e alternância de tema
+├── estado.tsx    rótulo de estado do lote e categoria
+├── hash.tsx      hash curto com botão de copiar; inteiro na impressão
+└── imprimir.tsx  botão de impressão (comprovante e auditoria)
 lib/
 ├── api.ts        cliente HTTP e relógio sincronizado com o servidor
 ├── sessao.tsx    contexto de sessão e guarda de rotas por papel
@@ -94,28 +84,17 @@ lib/
 └── tipos.ts      tipos das respostas da API
 ```
 
-<!-- Env Variables -->
-### Variáveis de ambiente
-
-Para rodar o projeto, adicione a seguinte variável ao seu arquivo `.env.local`:
+## Variáveis de ambiente
 
 | Variável | Uso |
 |---|---|
 | `NEXT_PUBLIC_API_URL` | Endereço da API. Padrão: `http://localhost:3001` |
 
-O Next só lê o `.env.local` na inicialização. Depois de mudar, reinicie o `npm run dev`.
+`NEXT_PUBLIC_API_URL` é gravada no JavaScript durante o build. Mudar o valor exige novo build (ou redeploy na Vercel). Em desenvolvimento, o Next lê o `.env.local` só na inicialização.
 
-<!-- Getting Started -->
-## Primeiros passos
+## Instalação
 
-<!-- Prerequisites -->
-### Pré-requisitos
-
-- Node.js LTS recente
-- Back-end no ar em `http://localhost:3001` (veja o [README do back-end](../backend/README.md))
-
-<!-- Installation -->
-### Instalação
+Pré-requisitos: Node.js LTS recente e o back-end no ar em `http://localhost:3001` (veja o [README do back-end](../backend/README.md)).
 
 ```bash
 cd frontend
@@ -126,26 +105,32 @@ npm run dev              # http://localhost:3000
 
 As páginas renderizadas no servidor chamam a API a cada carregamento. Com o back-end parado, elas mostram a tela de erro.
 
-<!-- Running Tests -->
-### Executando os testes
+## Testes
 
 Não há testes automatizados no front. A validação manual é:
 
 1. Com o seed aplicado, abrir a sala do lote em dois navegadores, entrando como `ana@exemplo.com` e `bruno@exemplo.com` (senha `senha1234`).
-2. Dar lances alternados e conferir os badges trocando sem recarregar e o histórico crescendo nas duas telas.
+2. Dar lances alternados e conferir os avisos trocando sem recarregar e o histórico crescendo nas duas telas.
 3. Em **Carteira**, conferir o saldo comprometido mudando a cada troca de liderança.
 4. Dar um lance nos últimos 2 minutos e conferir o contador e o novo fim.
 5. Depois do fim, abrir **Meus arremates**, o comprovante e a auditoria (sem login).
+6. Na vitrine, testar a busca por artista, o filtro de estado e o de categoria.
+7. Imprimir o comprovante e conferir que o hash aparece inteiro, em grupos.
 
-<!-- Usage -->
-## Uso
+## Deploy
 
-<!-- Rotas -->
-### Rotas
+| Campo (Vercel) | Valor |
+|---|---|
+| Root Directory | `frontend` |
+| `NEXT_PUBLIC_API_URL` | `https://leilao-verzel-96i4.onrender.com` (sem barra final) |
+
+Depois de salvar a variável, faça **redeploy**. No back-end (Render), `FRONTEND_URL` precisa ser a URL exata desta aplicação, senão o navegador bloqueia as chamadas e o WebSocket por CORS.
+
+## Rotas
 
 | Rota | Acesso | Renderização | Descrição |
 |---|---|---|---|
-| `/` | público | servidor | Vitrine com filtro por status (`?status=`) |
+| `/` | público | servidor | Vitrine: busca, estado (`?status=`) e categoria |
 | `/lotes/[id]` | público | cliente | Sala ao vivo: valor, contador, lance, histórico |
 | `/entrar` | público | cliente | Login e cadastro |
 | `/carteira` | autenticado | cliente | Saldos e depósito simulado (depósito só para licitante) |
@@ -155,83 +140,49 @@ Não há testes automatizados no front. A validação manual é:
 | `/comprovante/[id]` | público | servidor | Comprovante anonimizado |
 | `/auditoria/[loteId]` | público | servidor | Selo Íntegro ou Adulterado e a cadeia de lances |
 
-<!-- Como funciona -->
-### Como funciona
+## Como funciona
 
 **Sessão.** Token e usuário ficam no `localStorage`. O hook `useExigir(papel?)` redireciona quem não tem sessão ou papel, e só libera a página quando o acesso é permitido. Uma resposta 401 encerra a sessão local.
 
-**Tempo real.** A sala abre uma conexão Socket.io (com o token, se houver), entra na sala do lote e atualiza valor, histórico, fim e badge a cada evento. Ao reconectar, relê o estado pela API, porque os eventos perdidos na queda não voltam.
+**Vitrine.** A API devolve até 100 lotes por estado. A busca e o filtro de categoria são aplicados no servidor do Next sobre esse resultado, sem diferenciar acentos, e as categorias oferecidas vêm dos próprios lotes.
 
-**Badge Ganhando ou Superado.** O estado inicial vem de `GET /lotes/:id/lances/situacao`, que diferencia "superado" de "nunca dei lance". Depois disso, os eventos `ganhando` e `superado` mantêm o badge sem recarregar.
+**Tempo real.** A sala abre uma conexão Socket.io (com o token, se houver), entra na sala do lote e atualiza valor, histórico, fim e aviso a cada evento. Ao reconectar, relê o estado pela API, porque os eventos perdidos na queda não voltam.
 
-**Contador.** Usa o cabeçalho `Date` das respostas da API para calcular o desvio entre o relógio do navegador e o do servidor. Entre 2 minutos e zero, o contador muda de cor e avisa que um lance estende o fim. O servidor é quem decide: um lance fora do prazo volta 409, mesmo que o contador ainda mostre segundos.
+**Ganhando ou Superado.** O estado inicial vem de `GET /lotes/:id/lances/situacao`, que diferencia "superado" de "nunca dei lance". Depois disso, os eventos `ganhando` e `superado` mantêm o aviso sem recarregar.
+
+**Contador.** Usa o cabeçalho `Date` das respostas da API para calcular o desvio entre o relógio do navegador e o do servidor. Nos últimos 2 minutos, o contador muda de cor e avisa que um lance estende o fim. O servidor é quem decide: um lance fora do prazo volta 409, mesmo que o contador ainda mostre segundos.
 
 **Valores.** O servidor trabalha em centavos. Os campos aceitam `1.250,50` e `1250,5`, e a conversão acontece na borda em `lib/format.ts`.
 
-<!-- Decisões de interface -->
 ## Decisões de interface
 
 - Sem gradientes, sombras, cantos arredondados nem cards. A estrutura vem de linhas finas, tabelas e listas densas.
-- Paleta fechada: neutros quentes, um azul de acento e três cores só para estado (`ok`, `alerta`, `erro`). Os tokens ficam em `app/globals.css`.
+- Paleta fechada: neutros quentes, um azul-petróleo de acento e poucas cores de estado. Os tokens ficam em `app/globals.css`, com variação para o tema escuro.
 - Numerais tabulares no corpo inteiro, por se tratar de valores e contagens.
+- Ícones só onde substituem texto ou confirmam uma ação (tema, copiar hash).
+- Acessibilidade: foco visível, rótulos associados e região `aria-live` para novos lances e encerramento.
+- Impressão: o `@media print` do comprovante e da auditoria esconde os controles e mostra o hash inteiro, em grupos de 8 caracteres.
 - Classes reutilizadas definidas no `globals.css`: `.campo`, `.btn`, `.btn-cheio`, `.rotulo`, `.tabela`.
 - Componentes só quando há reuso real. O restante fica inline na página.
 
-<!-- Roadmap -->
-## Roadmap
-
-- [x] Sala ao vivo com Socket.io e reconexão
-- [x] Contador sincronizado com o servidor
-- [ ] Token em cookie `HttpOnly` em vez de `localStorage`
-- [ ] Estilo de impressão para `/comprovante/[id]`
-- [ ] Servir as imagens das obras sem depender de `nrs.harvard.edu` no navegador
-- [ ] Testes automatizados
-
-Limites conhecidos:
+## Limites conhecidos
 
 - O token no `localStorage` é exposto a XSS. Em produção, o correto é cookie `HttpOnly`.
 - A precisão do desvio de relógio é de cerca de 1 s, limite do cabeçalho `Date`.
 - As imagens são carregadas direto de `nrs.harvard.edu` pelo navegador.
-- A rota `/comprovante/[id]` não tem estilo de impressão dedicado.
+- A busca opera sobre os 100 lotes que a API devolve por estado.
+- Com a API em plano gratuito dormindo, a primeira página renderizada no servidor pode falhar por tempo esgotado.
 
-<!-- Contributing -->
-## Contribuindo
-
-Contribuições são sempre bem-vindas!
-
-Veja `contributing.md` para saber como começar e leia o [Código de Conduta](https://github.com/SEU_USUARIO/leilao/blob/master/CODE_OF_CONDUCT.md).
-
-<!-- FAQ -->
 ## FAQ
 
-- Por que a vitrine mostra tela de erro?
+**Por que a vitrine mostra tela de erro?**
+As páginas renderizadas no servidor consultam a API a cada carregamento. Em desenvolvimento, suba o back-end. Em produção, a API gratuita pode estar dormindo: abra `/lotes` na URL dela, espere responder e use "Tentar de novo".
 
-  + As páginas renderizadas no servidor consultam a API a cada carregamento. Suba o back-end e recarregue.
+**Mudei `NEXT_PUBLIC_API_URL` e nada aconteceu.**
+A variável é gravada no build. Na Vercel, faça redeploy; em desenvolvimento, reinicie o `npm run dev`.
 
-- Mudei o `.env.local` e nada aconteceu.
+**Os avisos de lance não atualizam, mas a vitrine carrega.**
+O WebSocket está bloqueado, quase sempre por CORS. `FRONTEND_URL` no back-end precisa ser exatamente a URL desta aplicação, sem barra final.
 
-  + O Next só lê o arquivo na inicialização. Reinicie o `npm run dev`.
-
-- O contador mostra segundos, mas meu lance voltou 409.
-
-  + O servidor decide o prazo. O contador tem precisão de cerca de 1 s por usar o cabeçalho `Date`.
-
-<!-- License -->
-## Licença
-
-Distribuído sob a licença INDICAR_LICENÇA. Veja `LICENSE.txt` para mais informações.
-
-<!-- Contact -->
-## Contato
-
-Seu Nome - [@seu_usuario](https://twitter.com/seu_usuario) - email@exemplo.com
-
-Link do projeto: [https://github.com/SEU_USUARIO/leilao](https://github.com/SEU_USUARIO/leilao)
-
-<!-- Acknowledgments -->
-## Agradecimentos
-
-- [Harvard Art Museums API](https://harvardartmuseums.org/collections/api)
-- [Shields.io](https://shields.io/)
-- [Awesome README](https://github.com/matiassingers/awesome-readme)
-- [Awesome README Template](https://github.com/Louis3797/awesome-readme-template)
+**O contador mostra segundos, mas meu lance voltou 409.**
+O servidor decide o prazo. O contador tem precisão de cerca de 1 s por usar o cabeçalho `Date`.

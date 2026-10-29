@@ -1,4 +1,5 @@
 export const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001';
+const base = () => (typeof window === 'undefined' ? (process.env.API_URL_INTERNAL ?? API_URL) : API_URL);
 
 export class ApiError extends Error {
   constructor(
@@ -17,7 +18,7 @@ export const agora = () => Date.now() + desvio;
 type Opcoes = { token?: string | null; corpo?: unknown; metodo?: string };
 
 export async function api<T>(caminho: string, { token, corpo, metodo }: Opcoes = {}): Promise<T> {
-  const resposta = await fetch(API_URL + caminho, {
+  const resposta = await fetch(base() + caminho, {
     method: metodo ?? (corpo ? 'POST' : 'GET'),
     cache: 'no-store',
     headers: {
