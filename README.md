@@ -25,6 +25,11 @@ Cada pasta tem o próprio README:
 - [FAQ](#faq)
 - [Repositório](#repositório)
 
+| Pasta | O que tem | README |
+|---|---|---|
+| [`backend/`](backend/) | API NestJS, WebSocket, liquidação e auditoria | [backend/README.md](backend/README.md) |
+| [`frontend/`](frontend/) | Interface em Next.js | [frontend/README.md](frontend/README.md) |
+
 ## Capturas de tela
 
 **Vitrine**: busca por título, artista ou cultura, filtro por estado e por categoria.
