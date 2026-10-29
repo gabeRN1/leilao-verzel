@@ -75,6 +75,44 @@ test/              testes e2e e helpers
 
 O `.env.example` traz as variáveis sem valores reais. O `.env` não é versionado. O CORS compara a origem exatamente: `https://app.vercel.app/` (com barra) não bate com `https://app.vercel.app`. Domínios de preview da Vercel são outras origens e precisam ser listados.
 
+### Como obter as chaves
+
+**`HARVARD_API_KEY`.** Peça uma chave gratuita em
+https://harvardartmuseums.org/collections/api (formulário de cadastro, a chave
+chega por e-mail).
+
+**`JWT_SECRET`.** Gere um valor aleatório e não reutilize o de outro projeto:
+
+    node -e "console.log(require('crypto').randomBytes(48).toString('hex'))"
+
+**`DATABASE_URL`.**
+- Local: o padrão do Compose já funciona
+  (`postgresql://leilao:leilao@localhost:5432/leilao`).
+- Neon: no painel do projeto, abra **Connect**, desative **Connection pooling**
+  e copie a string. Acrescente `?sslmode=require&connect_timeout=15`.
+
+### Local x produção
+
+Os arquivos `.env` (back-end) e `.env.local` (front-end) servem só para
+desenvolvimento local e não são versionados. Em produção eles não existem:
+as variáveis são cadastradas no painel de cada serviço.
+
+| Serviço | Onde cadastrar |
+|---|---|
+| Render | Dashboard > serviço > **Environment** |
+| Vercel | Projeto > **Settings > Environment Variables** (ambiente Production) |
+
+### Ordem do primeiro deploy
+
+1. Crie o banco no Neon e copie a `DATABASE_URL` direta.
+2. Suba o back-end no Render com `DATABASE_URL`, `JWT_SECRET`, `HARVARD_API_KEY`
+   e, por enquanto, `FRONTEND_URL` com qualquer valor. Anote a URL gerada.
+3. Suba o front-end na Vercel com `NEXT_PUBLIC_API_URL` apontando para o Render.
+   Anote a URL gerada.
+4. Volte ao Render, ajuste `FRONTEND_URL` para a URL exata da Vercel (sem barra
+   final) e salve. O Render reinicia sozinho.
+5. Rode o seed contra a API publicada (veja a seção Seed).
+
 ## Instalação
 
 Pré-requisitos: Node.js LTS recente, PostgreSQL 16 no ar (`docker compose up -d db` na raiz do repositório) e a chave da Harvard.
